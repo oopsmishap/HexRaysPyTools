@@ -30,10 +30,9 @@ def log2(v):
     return r
 
 def get_ptr_width():
-    info = idaapi.get_inf_structure()
-    if info.is_64bit():
+    if idaapi.inf_is_64bit():  # idaapi.get_inf_structure() removed in IDA 9.x
         width = 8
-    elif info.is_32bit():
+    elif idaapi.inf_is_32bit_exactly():
         width = 4
     else:
         width = 2
