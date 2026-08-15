@@ -352,7 +352,7 @@ class Class(object):
 
     def has_function(self, regexp):
         for vtable in list(self.vtables.values()):
-            if [func for func in vtable.virtual_functions if regexp.indexIn(func.name) >= 0]:
+            if [func for func in vtable.virtual_functions if regexp.match(func.name).hasMatch()]:
                 return True
         return False
 
@@ -600,20 +600,20 @@ class ProxyModel(QtCore.QSortFilterProxyModel):
     def set_regexp_filter(self, regexp):
         if regexp and regexp[0] == '!':
             self.filter_by_function = True
-            self.setFilterRegExp(regexp[1:])
+            self.setFilterRegularExpression(regexp[1:])
         else:
             self.filter_by_function = False
-            self.setFilterRegExp(regexp)
+            self.setFilterRegularExpression(regexp)
 
     def filterAcceptsRow(self, row, parent):
-        filter_regexp = self.filterRegExp()
-        if filter_regexp:
+        filter_regexp = self.filterRegularExpression()
+        if filter_regexp.pattern():
             index = self.sourceModel().index(row, 0, parent)
             item = index.internalPointer().item
 
             if self.filter_by_function and isinstance(item, Class):
                 return item.has_function(filter_regexp)
             else:
-                return filter_regexp.indexIn(item.class_name) >= 0
+                return filter_regexp.match(item.class_name).hasMatch()
 
         return True
