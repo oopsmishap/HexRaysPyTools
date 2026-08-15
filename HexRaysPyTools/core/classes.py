@@ -187,7 +187,7 @@ class VirtualTable(object):
             self.modified = False
             if len(self.virtual_functions) == len(udt_data):
                 for current_function, other_function in zip(self.virtual_functions, udt_data):
-                    current_function.update(other_function.name, other_function.type)
+                    current_function.update(other_function.name, idaapi.tinfo_t(other_function.type))
             else:
                 print("[ERROR] Something have been modified in Local types. Please refresh this view")
 
@@ -237,7 +237,8 @@ class VirtualTable(object):
             udt_data = idaapi.udt_type_data_t()
             tinfo.get_udt_details(udt_data)
             result = VirtualTable(ordinal, tinfo, class_)
-            virtual_functions = [VirtualMethod.create(func.type, func.name, result) for func in udt_data]
+            # copy the member type: udt_member_t.type is a reference into udt_data, which dies here
+            virtual_functions = [VirtualMethod.create(idaapi.tinfo_t(func.type), func.name, result) for func in udt_data]
             result.virtual_functions = virtual_functions
             all_virtual_functions[ordinal] = result
         return result
@@ -450,25 +451,25 @@ class TreeModel(QtCore.QAbstractItemModel):
 
     def setupModelData(self, root):
         idaapi.show_wait_box("Looking for classes...")
+        try:
+            all_virtual_functions.clear()
+            all_virtual_tables.clear()
 
-        all_virtual_functions.clear()
-        all_virtual_tables.clear()
+            classes = []
+            for ordinal in range(1, idaapi.get_ordinal_count(idaapi.get_idati())):
+                result = Class.create_class(ordinal)
+                if result:
+                    classes.append(result)
 
-        classes = []
-        for ordinal in range(1, idaapi.get_ordinal_count(idaapi.get_idati())):
-            result = Class.create_class(ordinal)
-            if result:
-                classes.append(result)
-
-        for class_ in classes:
-            class_item = TreeItem(class_, root)
-            for vtable in class_.vtables.values():
-                vtable_item = TreeItem(vtable, class_item)
-                vtable_item.children = [TreeItem(function, vtable_item) for function in vtable.virtual_functions]
-                class_item.appendChild(vtable_item)
-            root.appendChild(class_item)
-
-        idaapi.hide_wait_box()
+            for class_ in classes:
+                class_item = TreeItem(class_, root)
+                for vtable in class_.vtables.values():
+                    vtable_item = TreeItem(vtable, class_item)
+                    vtable_item.children = [TreeItem(function, vtable_item) for function in vtable.virtual_functions]
+                    class_item.appendChild(vtable_item)
+                root.appendChild(class_item)
+        finally:
+            idaapi.hide_wait_box()
 
     def flags(self, index):
         if index.isValid():

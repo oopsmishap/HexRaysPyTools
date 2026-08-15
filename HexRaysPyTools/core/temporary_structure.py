@@ -526,7 +526,7 @@ class VirtualTable(AbstractMember):
 class Member(AbstractMember):
     def __init__(self, offset, tinfo, scanned_variable, origin=0):
         AbstractMember.__init__(self, offset + origin, scanned_variable, origin)
-        self.tinfo = tinfo
+        self.tinfo = idaapi.tinfo_t(tinfo)  # copy: callers pass references into udt/ctree data that dies
         self.name = "{}_{:x}".format(get_operand_size_type(self.tinfo), self.offset)
         self.cmt = ''
 
@@ -775,6 +775,9 @@ class TemporaryStructureModel(QtCore.QAbstractTableModel):
         final_tinfo.create_udt(udt_data, idaapi.BTF_STRUCT)
         cdecl = idaapi.print_tinfo(None, 4, 5, idaapi.PRTYPE_MULTI | idaapi.PRTYPE_TYPE | idaapi.PRTYPE_SEMI,
                                    final_tinfo, struct_name, None)
+        if cdecl is None:
+            print("[ERROR] Failed to print structure declaration (bad member type?)")
+            return
         cdecl = idaapi.ask_text(0x10000, '#pragma pack(push, 1)\n' + cdecl, "The following new type will be created")
         if cdecl:
             return self.set_decl(cdecl, origin)
