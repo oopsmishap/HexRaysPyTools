@@ -226,7 +226,7 @@ class VirtualTable(object):
     def create(tinfo, class_):
         ordinal = idaapi.get_type_ordinal(idaapi.get_idati(), tinfo.dstr())
         if ordinal == 0:
-            if idaapi.import_type(idaapi.get_idati(), -1, tinfo.dstr(), 0) == idaapi.BADNODE:
+            if idaapi.get_idati().import_type(tinfo) is None:  # idaapi.import_type() removed in IDA 9.x
                 raise ImportError("unable to import type to idb ({})".format(tinfo.dstr()))
             ordinal = idaapi.get_type_ordinal(idaapi.get_idati(), tinfo.dstr())
 
