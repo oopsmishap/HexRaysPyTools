@@ -2,8 +2,10 @@ import os
 
 try:
     from PySide6 import QtCore, QtWidgets, QtGui # IDA 9.2+
+    from PySide6.QtGui import QAction  # QAction moved from QtWidgets to QtGui in Qt6
 except ImportError:
     from PyQt5 import QtCore, QtWidgets, QtGui
+    from PyQt5.QtWidgets import QAction
 
 import idaapi
 import ida_kernwin
@@ -313,12 +315,12 @@ class ClassViewer(idaapi.PluginForm):
         self.class_tree = QtWidgets.QTreeView()
         self.line_edit_filter = QtWidgets.QLineEdit()
 
-        self.action_collapse = QtWidgets.QAction("Collapse all", self.class_tree)
-        self.action_expand = QtWidgets.QAction("Expand all", self.class_tree)
-        self.action_set_arg = QtWidgets.QAction("Set First Argument Type", self.class_tree)
-        self.action_rollback = QtWidgets.QAction("Rollback", self.class_tree)
-        self.action_refresh = QtWidgets.QAction("Refresh", self.class_tree)
-        self.action_commit = QtWidgets.QAction("Commit", self.class_tree)
+        self.action_collapse = QAction("Collapse all", self.class_tree)
+        self.action_expand = QAction("Expand all", self.class_tree)
+        self.action_set_arg = QAction("Set First Argument Type", self.class_tree)
+        self.action_rollback = QAction("Rollback", self.class_tree)
+        self.action_refresh = QAction("Refresh", self.class_tree)
+        self.action_commit = QAction("Commit", self.class_tree)
 
         self.menu = QtWidgets.QMenu(self.parent)
 
